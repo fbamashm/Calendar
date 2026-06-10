@@ -1,3 +1,5 @@
+import telegram
+print("telegram imported successfully")
 import os
 import datetime
 from telegram import Update
