@@ -18,19 +18,32 @@ SCOPES    = [
     "https://www.googleapis.com/auth/spreadsheets"
 ]
 # ───────────────────────────────────────────────────────
-
 def get_google_services():
+    # اكتب محتوى المتغيرات كملفات مؤقتة
+    if not os.path.exists("credentials.json"):
+        creds_content = os.environ.get("credentials.json", "")
+        if creds_content:
+            with open("credentials.json", "w") as f:
+                f.write(creds_content)
+
+    if not os.path.exists("token.json"):
+        token_content = os.environ.get("token.json", "")
+        if token_content:
+            with open("token.json", "w") as f:
+                f.write(token_content)
+
     creds = None
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
+            # احفظ التوكن المجدد
+            with open("token.json", "w") as f:
+                f.write(creds.to_json())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open("token.json", "w") as f:
-            f.write(creds.to_json())
+            raise ValueError("التوكن منتهي ولا يمكن تجديده على السيرفر — يرجى تحديث token.json في Railway Variables")
+    
     calendar = build("calendar", "v3", credentials=creds)
     sheets   = build("sheets",   "v4", credentials=creds)
     return calendar, sheets
