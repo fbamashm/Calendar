@@ -20,6 +20,10 @@ SCOPES    = [
 # ───────────────────────────────────────────────────────
 def get_google_services():
     credentials_content = os.environ["CREDENTIALS_JSON_CONTENT"]
+    creds_content = os.environ.get("CREDENTIALS_JSON_CONTENT")
+
+    print("Credentials found:", bool(creds_content))
+    print("Length:", len(creds_content) if creds_content else 0)
     token_content = os.environ["TOKEN_JSON_CONTENT"]
     print(os.environ.get("TOKEN_JSON_CONTENT", "")[:300])
     if not os.path.exists("credentials.json"):
