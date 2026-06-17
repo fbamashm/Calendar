@@ -19,15 +19,14 @@ SCOPES    = [
 ]
 # ───────────────────────────────────────────────────────
 def get_google_services():
-    # اكتب محتوى المتغيرات كملفات مؤقتة
     if not os.path.exists("credentials.json"):
-        creds_content = os.environ.get("credentials.json", "")
+        creds_content = os.environ.get("CREDENTIALS_JSON_CONTENT", "")
         if creds_content:
             with open("credentials.json", "w") as f:
                 f.write(creds_content)
 
     if not os.path.exists("token.json"):
-        token_content = os.environ.get("token.json", "")
+        token_content = os.environ.get("TOKEN_JSON_CONTENT", "")
         if token_content:
             with open("token.json", "w") as f:
                 f.write(token_content)
@@ -38,12 +37,11 @@ def get_google_services():
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            # احفظ التوكن المجدد
             with open("token.json", "w") as f:
                 f.write(creds.to_json())
         else:
-            raise ValueError("التوكن منتهي ولا يمكن تجديده على السيرفر — يرجى تحديث token.json في Railway Variables")
-    
+            raise ValueError("التوكن منتهي ولا يمكن تجديده على السيرفر")
+
     calendar = build("calendar", "v3", credentials=creds)
     sheets   = build("sheets",   "v4", credentials=creds)
     return calendar, sheets
