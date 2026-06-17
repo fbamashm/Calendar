@@ -19,41 +19,17 @@ SCOPES    = [
 ]
 # ───────────────────────────────────────────────────────
 def get_google_services():
-    credentials_content = os.environ["CREDENTIALS_JSON_CONTENT"]
-    creds_content = os.environ.get("CREDENTIALS_JSON_CONTENT")
-
-    print("Credentials found:", bool(creds_content))
-    print("Length:", len(creds_content) if creds_content else 0)
-    token_content = os.environ["TOKEN_JSON_CONTENT"]
-    print(os.environ.get("TOKEN_JSON_CONTENT", "")[:300])
-    if not os.path.exists("credentials.json"):
-        creds_content = os.environ.get("CREDENTIALS_JSON_CONTENT", "")
-        if creds_content:
-            with open("credentials.json", "w") as f:
-                f.write(creds_content)
-
-    if not os.path.exists("token.json"):
-        token_content = os.environ.get("TOKEN_JSON_CONTENT", "")
-        if token_content:
-            with open("token.json", "w") as f:
-                f.write(token_content)
-
     creds = None
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            with open("token.json", "w") as f:
-                f.write(creds.to_json())
         else:
-            print("creds:", creds)
-            print("valid:", creds.valid if creds else None)
-            print("expired:", creds.expired if creds else None)
-            print("refresh_token:", bool(creds.refresh_token) if creds else None)
-
-            raise ValueError("التوكن منتهي ولا يمكن تجديده على السيرفر")
-
+            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open("token.json", "w") as f:
+            f.write(creds.to_json())
     calendar = build("calendar", "v3", credentials=creds)
     sheets   = build("sheets",   "v4", credentials=creds)
     return calendar, sheets
