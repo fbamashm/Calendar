@@ -41,6 +41,11 @@ def get_google_services():
             with open("token.json", "w") as f:
                 f.write(creds.to_json())
         else:
+            print("creds:", creds)
+            print("valid:", creds.valid if creds else None)
+            print("expired:", creds.expired if creds else None)
+            print("refresh_token:", bool(creds.refresh_token) if creds else None)
+
             raise ValueError("التوكن منتهي ولا يمكن تجديده على السيرفر")
 
     calendar = build("calendar", "v3", credentials=creds)
