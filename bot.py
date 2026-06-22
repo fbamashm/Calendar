@@ -18,18 +18,84 @@ SCOPES    = [
     "https://www.googleapis.com/auth/spreadsheets"
 ]
 # ───────────────────────────────────────────────────────
+# def get_google_services():
+#     # اكتب محتوى المتغيرات كملفات مؤقتة
+#     if not os.path.exists("credentials.json"):
+#         creds_content = os.environ.get("credentials.json", "")
+#         if creds_content:
+#             with open("credentials.json", "w") as f:
+#                 f.write(creds_content)
+
+#     if not os.path.exists("token.json"):
+#         token_content = os.environ.get("token.json", "")
+#         if token_content:
+#             with open("token.json", "w") as f:
+#                 f.write(token_content)
+
+#     creds = None
+#     if os.path.exists("token.json"):
+#         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+#     if not creds or not creds.valid:
+#         if creds and creds.expired and creds.refresh_token:
+#             creds.refresh(Request())
+#             # احفظ التوكن المجدد
+#             with open("token.json", "w") as f:
+#                 f.write(creds.to_json())
+#         else:
+#             raise ValueError("التوكن منتهي ولا يمكن تجديده على السيرفر — يرجى تحديث token.json في Railway Variables")
+    
+#     calendar = build("calendar", "v3", credentials=creds)
+#     sheets   = build("sheets",   "v4", credentials=creds)
+#     return calendar, sheets
+
+# def get_google_services():
+#     if not os.path.exists("credentials.json"):
+#         creds_content = os.environ.get("CREDENTIALS_JSON_CONTENT", "")
+#         if creds_content:
+#             with open("credentials.json", "w") as f:
+#                 f.write(creds_content)
+
+#     if not os.path.exists("token.json"):
+#         token_content = os.environ.get("TOKEN_JSON_CONTENT", "")
+#         if token_content:
+#             with open("token.json", "w") as f:
+#                 f.write(token_content)
+
+    # creds = None
+
 def get_google_services():
+    # 1. Safely pull from environment variables
+    creds_content = os.environ.get("CREDENTIALS_JSON_CONTENT", "")
+    token_content = os.environ.get("TOKEN_JSON_CONTENT", "")
+
+    # 2. Only attempt to write files if the variables actually have data
+    if creds_content and not os.path.exists("credentials.json"):
+        with open("credentials.json", "w") as f:
+            f.write(creds_content)
+
+    if token_content and not os.path.exists("token.json"):
+        with open("token.json", "w") as f:
+            f.write(token_content)
+
+    # 3. Fallback: If both are missing entirely (like during a bare build phase), 
+    # return dummy objects or empty values instead of crashing the whole build process.
+    if not os.path.exists("token.json") and not token_content:
+        print("⚠️ Warning: Tokens not found. Skipping Google initialization during build phase.")
+        return None, None
+
     creds = None
+    # ... Rest of your token validation logic remains exactly the same below ...
+
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
+            with open("token.json", "w") as f:
+                f.write(creds.to_json())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open("token.json", "w") as f:
-            f.write(creds.to_json())
+            raise ValueError("التوكن منتهي ولا يمكن تجديده على السيرفر")
+
     calendar = build("calendar", "v3", credentials=creds)
     sheets   = build("sheets",   "v4", credentials=creds)
     return calendar, sheets
